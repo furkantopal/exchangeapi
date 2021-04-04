@@ -1,4 +1,4 @@
-#EXCHANGE API
+# EXCHANGE API
 Simple foreign exchange application.
 1. Exchange Rate API:
    - input: currency pair to retrieve the exchange rate
