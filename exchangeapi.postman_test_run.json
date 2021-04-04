@@ -1,0 +1,128 @@
+{
+	"id": "357b6473-35be-4e86-852c-60a1f35cef72",
+	"name": "exchangeapi",
+	"timestamp": "2021-04-04T17:03:55.017Z",
+	"collection_id": "0d78de15-1bf3-4fa5-a191-5c367364f887",
+	"folder_id": 0,
+	"environment_id": "0",
+	"totalPass": 0,
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "402ddceb-e084-44d8-9363-526ee77f3539",
+			"name": "conversion",
+			"url": "http://localhost:8080/conversion?sourceAmount=5&sourceCurrency=GBP&targetCurrency=EUR",
+			"time": 221,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				221
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "0a995667-0a2f-4608-91c7-a9a0ac623de3",
+			"name": "exchangeRate",
+			"url": "http://localhost:8080/exchangeRate?sourceCurrency=USD&targetCurrency=TRY",
+			"time": 225,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				225
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "4199c1f8-2a0d-4d7e-8772-9429a769693e",
+			"name": "conversion/list with date only",
+			"url": "http://localhost:8080/conversion/list?transactionId=&transactionDate=2021-04-04",
+			"time": 10,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				10
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "a0f86c50-a850-402e-a949-d29953aeee01",
+			"name": "conversion/list with id only",
+			"url": "http://localhost:8080/conversion/list?transactionId=2&transactionDate=",
+			"time": 10,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				10
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "5e21543f-8da1-44da-bb1e-72364c80d774",
+			"name": "conversion/list with paging",
+			"url": "http://localhost:8080/conversion/list?transactionId=&transactionDate=2021-04-04&pageNo=1",
+			"time": 13,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				13
+			],
+			"allTests": [
+				{}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 479,
+	"collection": {
+		"requests": [
+			{
+				"id": "402ddceb-e084-44d8-9363-526ee77f3539",
+				"method": "GET"
+			},
+			{
+				"id": "0a995667-0a2f-4608-91c7-a9a0ac623de3",
+				"method": "GET"
+			},
+			{
+				"id": "4199c1f8-2a0d-4d7e-8772-9429a769693e",
+				"method": "GET"
+			},
+			{
+				"id": "a0f86c50-a850-402e-a949-d29953aeee01",
+				"method": "GET"
+			},
+			{
+				"id": "5e21543f-8da1-44da-bb1e-72364c80d774",
+				"method": "GET"
+			}
+		]
+	}
+}
