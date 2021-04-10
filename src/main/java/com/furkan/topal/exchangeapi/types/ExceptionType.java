@@ -8,8 +8,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ExceptionType {
-  JSON_OBJECT_ERROR(
-      "EXCHANGEAPI101", "Encountered with problem while putting values to jsonObject.");
+  JSON_ERROR("EXCHANGEAPI101", "Encountered with problem while putting values to jsonObject.");
 
   private static final Map<String, ExceptionType> lookupMap = new HashMap<>();
 

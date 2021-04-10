@@ -1,24 +1,19 @@
 package com.furkan.topal.exchangeapi.service.impl;
 
-import static com.furkan.topal.exchangeapi.types.ExceptionType.JSON_OBJECT_ERROR;
-import static com.furkan.topal.exchangeapi.utils.Constants.EXCHANGE_RATE;
+import static com.furkan.topal.exchangeapi.types.ExceptionType.JSON_ERROR;
 import static com.furkan.topal.exchangeapi.utils.Constants.PAGING_SIZE;
-import static com.furkan.topal.exchangeapi.utils.Constants.SOURCE_AMOUNT;
-import static com.furkan.topal.exchangeapi.utils.Constants.SOURCE_CURRENCY;
-import static com.furkan.topal.exchangeapi.utils.Constants.TARGET_AMOUNT;
-import static com.furkan.topal.exchangeapi.utils.Constants.TARGET_CURRENCY;
-import static com.furkan.topal.exchangeapi.utils.Constants.TRANSACTION_DATE;
-import static com.furkan.topal.exchangeapi.utils.Constants.TRANSACTION_ID;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.furkan.topal.exchangeapi.entity.Conversion;
 import com.furkan.topal.exchangeapi.exception.ExchangeApiException;
 import com.furkan.topal.exchangeapi.repository.ConversionRepository;
 import com.furkan.topal.exchangeapi.service.TransactionService;
 import java.util.List;
 import java.util.Objects;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -35,10 +30,10 @@ public class TransactionServiceImpl implements TransactionService {
   @Override
   public String getTransaction(Long transactionId, String transactionDate, int pageNo) {
 
-    final boolean IsNotTransactionDateNullOrEmpty =
-        Objects.nonNull(transactionDate) && !transactionDate.isEmpty();
+    final boolean IsTransactionDateNullOrEmpty =
+        !Objects.nonNull(transactionDate) || transactionDate.isEmpty();
 
-    if (Objects.nonNull(transactionId) && IsNotTransactionDateNullOrEmpty) {
+    if (Objects.nonNull(transactionId) && !IsTransactionDateNullOrEmpty) {
 
       return getTransactionDetailWithIdAndDate(transactionId, transactionDate);
 
@@ -46,7 +41,7 @@ public class TransactionServiceImpl implements TransactionService {
 
       return getTransactionDetailWithId(transactionId);
 
-    } else if (IsNotTransactionDateNullOrEmpty) {
+    } else if (!IsTransactionDateNullOrEmpty) {
 
       return getTransactionDetailWithDate(transactionDate, pageNo);
     }
@@ -55,37 +50,32 @@ public class TransactionServiceImpl implements TransactionService {
 
   public String returnConversion(Conversion conversion) {
 
-    JSONObject jsonObject = new JSONObject();
+    ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
     try {
-      jsonObject.put(TRANSACTION_ID, conversion.getTransactionId());
-      jsonObject.put(TRANSACTION_DATE, conversion.getTransactionDate());
-      jsonObject.put(SOURCE_CURRENCY, conversion.getSourceCurrency());
-      jsonObject.put(TARGET_CURRENCY, conversion.getTargetCurrency());
-      jsonObject.put(SOURCE_AMOUNT, conversion.getSourceAmount());
-      jsonObject.put(EXCHANGE_RATE, conversion.getExchangeRate());
-      jsonObject.put(TARGET_AMOUNT, conversion.getTargetAmount());
-    } catch (JSONException e) {
+      String jsonString = objectWriter.writeValueAsString(conversion);
+      log.info("Returning desired conversion info as: {}.", jsonString);
+      return jsonString;
+    } catch (JsonProcessingException e) {
       log.error(
-          "Failed to put conversion values to jsonObject while returning the transaction details.",
+          "Failed to convert conversion values to Json string while returning the transaction details.",
           e);
-      throw new ExchangeApiException(
-          JSON_OBJECT_ERROR, "Returning conversion as jsonObject failed.", e);
+      throw new ExchangeApiException(JSON_ERROR, "Returning conversion as Json string failed.", e);
     }
-
-    return jsonObject.toString();
   }
 
+  @SneakyThrows
   public String returnConversionList(List<Conversion> conversionList) {
 
-    StringBuilder conversionListString = new StringBuilder();
-
-    conversionList.forEach(conversion -> conversionListString.append(returnConversion(conversion)));
-
-    if (!conversionListString.toString().isEmpty()) {
-      return conversionListString.toString();
-    } else {
-      log.info("There is no conversion record for this transactionDate.");
-      return "There is no conversion record for this transactionDate.";
+    ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    try {
+      String jsonString = objectWriter.writeValueAsString(conversionList);
+      log.info("Returning desired conversions info as: {}.", jsonString);
+      return jsonString;
+    } catch (JsonProcessingException e) {
+      log.error(
+          "Failed to convert conversion list values to Json string while returning the transaction list details.",
+          e);
+      throw new ExchangeApiException(JSON_ERROR, "Returning conversion as Json string failed.", e);
     }
   }
 
@@ -95,9 +85,7 @@ public class TransactionServiceImpl implements TransactionService {
         conversionRepository.findByTransactionIdAndTransactionDate(transactionId, transactionDate);
 
     if (Objects.nonNull(conversion)) {
-      log.info("Desired conversion info: {}.", conversion.toString());
       return returnConversion(conversion);
-
     } else {
       log.info("There is no conversion record for this transactionId and transactionDate.");
       return "There is no conversion record for this transactionId and transactionDate.";
@@ -110,10 +98,7 @@ public class TransactionServiceImpl implements TransactionService {
         conversionRepository.findByTransactionDate(
             transactionDate, PageRequest.of(pageNo, PAGING_SIZE));
 
-    if (Objects.nonNull(conversionList)) {
-
-      log.info("Desired conversions info list: {}.", conversionList.toString());
-
+    if (Objects.nonNull(conversionList) && !conversionList.isEmpty()) {
       return returnConversionList(conversionList);
     } else {
       log.info("There is no conversion record for this transactionDate.");
@@ -126,9 +111,7 @@ public class TransactionServiceImpl implements TransactionService {
     Conversion conversion = conversionRepository.findByTransactionId(transactionId);
 
     if (Objects.nonNull(conversion)) {
-      log.info("Desired conversion info: {}.", conversion.toString());
       return returnConversion(conversion);
-
     } else {
       log.info("There is no conversion record for this transactionId.");
       return "There is no conversion record for this transactionId.";

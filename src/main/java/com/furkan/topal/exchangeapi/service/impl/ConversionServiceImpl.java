@@ -1,17 +1,16 @@
 package com.furkan.topal.exchangeapi.service.impl;
 
-import static com.furkan.topal.exchangeapi.types.ExceptionType.JSON_OBJECT_ERROR;
 import static com.furkan.topal.exchangeapi.utils.Constants.HTTPS;
 import static com.furkan.topal.exchangeapi.utils.Constants.RATES;
 import static com.furkan.topal.exchangeapi.utils.Constants.RATESAPI_HOST;
 import static com.furkan.topal.exchangeapi.utils.Constants.RATESAPI_PARAM_BASE;
 import static com.furkan.topal.exchangeapi.utils.Constants.RATESAPI_PARAM_SYMBOL;
 import static com.furkan.topal.exchangeapi.utils.Constants.RATESAPI_PATH;
-import static com.furkan.topal.exchangeapi.utils.Constants.TARGET_AMOUNT;
-import static com.furkan.topal.exchangeapi.utils.Constants.TRANSACTION_ID;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.furkan.topal.exchangeapi.dto.ConversionReturnDto;
 import com.furkan.topal.exchangeapi.entity.Conversion;
-import com.furkan.topal.exchangeapi.exception.ExchangeApiException;
 import com.furkan.topal.exchangeapi.repository.ConversionRepository;
 import com.furkan.topal.exchangeapi.service.ConversionService;
 import java.math.BigDecimal;
@@ -23,7 +22,6 @@ import java.time.LocalDate;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.utils.URIBuilder;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -87,7 +85,7 @@ public class ConversionServiceImpl implements ConversionService {
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     String jsonResponse = response.body();
 
-    log.info("RatesApi returned exchange request as: {}", jsonResponse);
+    log.info("RatesApi returned exchange request as: {}.", jsonResponse);
     return new JSONObject(jsonResponse);
   }
 
@@ -96,26 +94,24 @@ public class ConversionServiceImpl implements ConversionService {
 
     JSONObject response = getJSONRespond(sourceCurrency, targetCurrency);
     String exchangeRate = response.getJSONObject(RATES).getString(targetCurrency);
-    log.info("Exchange rate is: {}", exchangeRate);
+    log.info("Exchange rate is: {}.", exchangeRate);
 
     return new BigDecimal(exchangeRate);
   }
 
+  @SneakyThrows
   public String returnExchange(Conversion conversion) {
 
-    JSONObject jsonObject = new JSONObject();
-    try {
-      jsonObject.put(TARGET_AMOUNT, conversion.getTargetAmount());
-      jsonObject.put(TRANSACTION_ID, conversion.getTransactionId());
-    } catch (JSONException e) {
-      log.error(
-          "Failed to put conversion values to jsonObject while returning exchange amount in target currency.",
-          e);
-      throw new ExchangeApiException(
-          JSON_OBJECT_ERROR, "Returning conversion as jsonObject failed.", e);
-    }
+    ConversionReturnDto conversionReturnDto =
+        ConversionReturnDto.builder()
+            .targetAmount(conversion.getTargetAmount())
+            .transactionId(conversion.getTransactionId())
+            .build();
 
-    log.info("Returning json response as: {}.", jsonObject.toString());
-    return jsonObject.toString();
+    ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    String jsonString = objectWriter.writeValueAsString(conversionReturnDto);
+
+    log.info("Returning json response as: {}.", jsonString);
+    return jsonString;
   }
 }
